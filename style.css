@@ -1,0 +1,140 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  min-height: 100vh;
+  font-size: 1.2rem;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #eee;
+}
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 0.5rem;
+}
+.header {
+  display: flex;
+  min-height: 2rem;
+  justify-content: center;
+}
+.header__input-todo {
+  min-width: 15.625rem;
+  flex: 1;
+  padding: 0.5rem 1rem;
+  font-size: inherit;
+}
+.header__btn-todo {
+  height: 2.625rem;
+  width: 2.625rem;
+  margin-left: 0.5rem;
+  border-radius: 50%;
+  font-size: 2rem;
+}
+h1 {
+  padding: 1.5rem 0;
+  text-align: center;
+}
+.item__input,
+.box-icon__btn > svg {
+  margin: 0.3rem;
+}
+.todo-list__item,
+.item__box-icon,
+.box-icon__btn {
+  display: flex;
+}
+.todo-list__item,
+.box-icon__btn {
+  align-items: center;
+}
+.item__text,
+.box-icon__btn,
+.header__btn-todo {
+  cursor: pointer;
+}
+.todo-list__item:has(> .item__input:checked),
+.todo-list__item:has(> .item__input:checked) svg,
+.todo-list__item svg {
+  transition-delay: 0.05s;
+}
+.todo-list > ::after,
+.todo-list__item > ::after {
+  display: block;
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+.div-tasks {
+  padding-block: 2rem;
+}
+.div-tasks > p {
+  font-weight: bold;
+}
+.div-tasks > p:nth-child(2) {
+  color: green;
+}
+.div-tasks > p:nth-child(3) {
+  color: red;
+}
+.todo-list {
+  position: relative;
+  margin-bottom: 2rem;
+}
+.todo-list > ::after {
+  background-color: #fff;
+  z-index: -2;
+}
+.todo-list__item {
+  position: relative;
+  flex-wrap: wrap;
+}
+.todo-list__item:first-child {
+  border: 1px solid #000;
+}
+.todo-list__item:nth-child(n + 2) {
+  border: 1px solid #000;
+  border-top: none;
+}
+.todo-list__item > ::after {
+  background-color: green;
+  opacity: 0;
+  z-index: -1;
+  transition: 0.3s;
+}
+.todo-list__item:has(.item__input:checked) > ::after {
+  opacity: 1;
+}
+.todo-list__item:has(> .item__input:checked) {
+  color: #fff;
+}
+.item__input {
+  position: absolute;
+  visibility: hidden;
+}
+.item__text {
+  padding: 1rem 0;
+  padding-left: 1rem;
+}
+.todo-list__item:has(> .item__input:checked) svg {
+  fill: rgba(255, 255, 255, 1);
+  pointer-events: none;
+}
+.todo-list__item:has(> .item__input:checked) .item__text {
+  text-decoration: line-through;
+  text-decoration-thickness: 0.2rem;
+}
+.item__text {
+  flex: 1 0 200px;
+}
+.box-icon__btn {
+  background-color: transparent;
+  border: none;
+}
+.box-icon__btn {
+  margin-right: 0.5rem;
+}
