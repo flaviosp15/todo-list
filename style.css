@@ -146,3 +146,11 @@ input.item__text {
 input.item__text:focus {
   outline: none;
 }
+.box-icon__edit-todo,
+.box-icon__confirm-edit {
+  display: none;
+}
+.box-icon__edit-todo.active,
+.box-icon__confirm-edit.active {
+  display: block;
+}
