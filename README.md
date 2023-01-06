@@ -60,5 +60,6 @@ Click on trash icon to delete task.
 
 - DOM manipulation
 - Interactions with checkboxes
+- For loops
 - Event listeners
 - localStorage
