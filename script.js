@@ -5,7 +5,7 @@ const totalToDoDOM = document.querySelector('.span__total-task');
 const totalCompleteToDoDOM = document.querySelector('.span__total-completed-task');
 const totalIncompleteToDoDOM = document.querySelector('.span__total-incompleted-task');
 const localStorageToDo = JSON.parse(localStorage.getItem('tasks'));
-const toDoListArray = localStorage.getItem('tasks') !== null ? localStorageToDo : [];
+const localStorageArray = localStorage.getItem('tasks') !== null ? localStorageToDo : [];
 let oldTask;
 
 const init = () => {
@@ -15,24 +15,24 @@ const init = () => {
 };
 
 const updateLocalStorage = () => {
-  localStorage.setItem('tasks', JSON.stringify(toDoListArray));
+  localStorage.setItem('tasks', JSON.stringify(localStorageArray));
 };
 
 const addToDo = () => {
   const newTask = inputToDoDOM.value;
   const haveSomeDigit = /\w/g.test(newTask);
-  const isRepeatedTask = !convertLocalStorageArrayInTasksArray().find(task => task === newTask);
+  const isRepeatedTask = !copyArray(localStorageArray).find(task => task === newTask);
 
   if (haveSomeDigit && isRepeatedTask) {
-    toDoListArray.push({ task: newTask, done: false });
+    localStorageArray.push({ task: newTask, done: false });
     cleanInput();
   }
 
   init();
 };
 
-const convertLocalStorageArrayInTasksArray = () => {
-  return toDoListArray.map(({ task }) => task);
+const copyArray = arr => {
+  return arr.map(({ task }) => task);
 };
 
 const deleteToDo = e => {
@@ -40,7 +40,7 @@ const deleteToDo = e => {
   const isDeleteBtn = deleteBtn.classList.contains('box-icon__delete-todo');
   if (isDeleteBtn) {
     const task = deleteBtn.parentElement.previousElementSibling.textContent;
-    toDoListArray.splice(convertLocalStorageArrayInTasksArray().indexOf(task), 1);
+    localStorageArray.splice(copyArray(localStorageArray).indexOf(task), 1);
     init();
   }
   return;
@@ -60,16 +60,16 @@ const checkToDo = e => {
   const isCheckboxEl = checkbox.classList.contains('item__check-todo');
   const isLabelEl = label.tagName.toLowerCase() === 'label';
   if (isCheckboxEl && isLabelEl) {
-    const copyLocalStorageArray = convertLocalStorageArrayInTasksArray();
+    const copyLocalStorageArray = copyArray(localStorageArray);
     checkbox.checked = !checkbox.checked;
-    toDoListArray[copyLocalStorageArray.indexOf(task)]['done'] = checkbox.checked;
+    localStorageArray[copyLocalStorageArray.indexOf(task)]['done'] = checkbox.checked;
     updateLocalStorage();
     displayCounterTasks();
   }
   return;
 };
 
-const changeElementTag = el => {
+const switchElementTag = el => {
   const taskDOM = el.parentElement.previousElementSibling;
   const isItLabelTag = taskDOM.tagName.toLowerCase() === 'label';
   const taskText = isItLabelTag ? taskDOM.innerText : taskDOM.value;
@@ -77,17 +77,22 @@ const changeElementTag = el => {
     ? `<input class="item__text" type=text value="${taskText}">`
     : `<label class="item__text" for="${taskText.toLowerCase().replace(/\s/g, '-')}">${taskText}</label>`;
   const parser = new DOMParser().parseFromString(element, 'text/html');
-  const currentHTMLElement = parser.children[0].children[1].children[0];
+  const currentHTMLElement = parser.firstElementChild.children[1].firstElementChild;
   const focusEnd = el => {
     el.focus();
     const val = el.value;
     el.value = '';
     el.value = val;
   };
-
-  taskDOM.parentNode.replaceChild(currentHTMLElement, taskDOM);
-
+  taskDOM.parentElement.replaceChild(currentHTMLElement, taskDOM);
   if (isItLabelTag) focusEnd(currentHTMLElement);
+};
+
+const switchToDoValue = btn => {
+  const taskInput = btn.parentElement.previousElementSibling.value;
+  const copyLocalStorageArray = copyArray(localStorageArray);
+  const index = copyLocalStorageArray.indexOf(oldTask);
+  localStorageArray[index]['task'] = taskInput;
 };
 
 const editToDo = e => {
@@ -107,18 +112,15 @@ const editToDo = e => {
       hideConfirmBtns();
       showEditBtns();
       if (isAnInput) {
-        const task = confirmBtn.parentElement.previousElementSibling.value;
-        const copyLocalStorageArray = convertLocalStorageArrayInTasksArray();
-        const index = copyLocalStorageArray.indexOf(oldTask);
-        changeElementTag(editBtn);
-        toDoListArray[index]['task'] = task;
+        switchToDoValue(confirmBtn);
+        switchElementTag(editBtn);
         updateLocalStorage();
       }
     });
     hideTargetEditBtn();
     showTargetConfirmBtn();
     oldTask = editBtn.parentElement.previousElementSibling.textContent;
-    changeElementTag(e.target);
+    switchElementTag(editBtn);
   }
   return;
 };
@@ -127,22 +129,19 @@ const confirmEditToDo = e => {
   const confirmBtn = e.target;
   const isConfirmBtn = confirmBtn.classList.contains('box-icon__confirm-edit');
   if (isConfirmBtn) {
-    const task = confirmBtn.parentElement.previousElementSibling.value;
-    const copyLocalStorageArray = convertLocalStorageArrayInTasksArray();
-    const index = copyLocalStorageArray.indexOf(oldTask);
     const hideConfirmBtn = () => confirmBtn.classList.remove('active');
     const showEditBtn = () => confirmBtn.previousElementSibling.classList.add('active');
     hideConfirmBtn();
     showEditBtn();
-    changeElementTag(confirmBtn);
-    toDoListArray[index]['task'] = task;
+    switchToDoValue(confirmBtn);
+    switchElementTag(confirmBtn);
     init();
   }
   return;
 };
 
 const displayCounterTasks = () => {
-  const doneTasksArray = toDoListArray.map(({ done }) => done);
+  const doneTasksArray = localStorageArray.map(({ done }) => done);
   const tasksArrayLength = doneTasksArray.length;
   const completedTasks = doneTasksArray.filter(bool => bool).length;
   totalToDoDOM.innerHTML = tasksArrayLength;
@@ -152,7 +151,7 @@ const displayCounterTasks = () => {
 
 const displayToDoList = () => {
   toDoListDOM.innerHTML = '';
-  toDoListArray.forEach(({ task, done }) => {
+  localStorageArray.forEach(({ task, done }) => {
     const lowerCaseTask = task.toLowerCase().replace(/\s/g, '-');
     const toDoHTML = `
     <li class="todo-list__item">
