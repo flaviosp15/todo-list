@@ -35,11 +35,15 @@ const convertLocalStorageArrayInTasksArray = () => {
   return toDoListArray.map(({ task }) => task);
 };
 
-const deleteToDo = ({ target }) => {
-  const task = target.parentNode.previousSibling.previousSibling.textContent;
-  toDoListArray.splice(convertLocalStorageArrayInTasksArray().indexOf(task), 1);
-
-  init();
+const deleteToDo = e => {
+  const deleteBtn = e.target;
+  const isDeleteBtn = deleteBtn.classList.contains('box-icon__delete-todo');
+  if (isDeleteBtn) {
+    const task = deleteBtn.parentElement.previousElementSibling.textContent;
+    toDoListArray.splice(convertLocalStorageArrayInTasksArray().indexOf(task), 1);
+    init();
+  }
+  return;
 };
 
 const cleanInput = () => {
@@ -47,15 +51,26 @@ const cleanInput = () => {
   inputToDoDOM.focus();
 };
 
-const checkToDo = ({ target }) => {
-  const task = target.nextSibling.nextSibling.textContent;
-  toDoListArray[convertLocalStorageArrayInTasksArray().indexOf(task)]['done'] = target.checked;
-  updateLocalStorage();
-  displayCounterTasks();
+const checkToDo = e => {
+  e.preventDefault();
+  const item = e.target.parentElement;
+  const checkbox = item.children[0];
+  const label = item.children[1];
+  const task = label.textContent;
+  const isCheckboxEl = checkbox.classList.contains('item__check-todo');
+  const isLabelEl = label.tagName.toLowerCase() === 'label';
+  if (isCheckboxEl && isLabelEl) {
+    const copyLocalStorageArray = convertLocalStorageArrayInTasksArray();
+    checkbox.checked = !checkbox.checked;
+    toDoListArray[copyLocalStorageArray.indexOf(task)]['done'] = checkbox.checked;
+    updateLocalStorage();
+    displayCounterTasks();
+  }
+  return;
 };
 
 const changeElementTag = el => {
-  const taskDOM = el.parentNode.previousSibling.previousSibling;
+  const taskDOM = el.parentElement.previousElementSibling;
   const isItLabelTag = taskDOM.tagName.toLowerCase() === 'label';
   const taskText = isItLabelTag ? taskDOM.innerText : taskDOM.value;
   const element = isItLabelTag
@@ -75,41 +90,55 @@ const changeElementTag = el => {
   if (isItLabelTag) focusEnd(currentHTMLElement);
 };
 
-const editToDo = ({ target }) => {
-  const editBtn = target;
-  const nodeListItems = editBtn.parentNode.parentNode.parentNode.children;
-
-  Array.from(nodeListItems).forEach(icon => {
-    const confirmEditBtn = icon.children[2].children[1];
-    const editBtn = icon.children[2].children[0];
-    const isThereSomeInput = icon.children[1].tagName.toLowerCase() === 'input';
-
-    confirmEditBtn.classList.remove('active');
-    editBtn.classList.add('active');
-
-    if (isThereSomeInput) {
-      changeElementTag(editBtn);
-    }
-  });
-
-  editBtn.classList.remove('active');
-  editBtn.nextSibling.nextSibling.classList.add('active');
-  oldTask = editBtn.parentNode.previousSibling.previousSibling.innerText;
-
-  changeElementTag(target);
+const editToDo = e => {
+  e.preventDefault();
+  const editBtn = e.target;
+  const itemsArray = e.currentTarget.children;
+  const isEditBtn = editBtn.classList.contains('box-icon__edit-todo');
+  const hideTargetEditBtn = () => editBtn.classList.remove('active');
+  const showTargetConfirmBtn = () => editBtn.nextElementSibling.classList.add('active');
+  if (isEditBtn) {
+    Array.from(itemsArray).forEach(icon => {
+      const confirmBtn = icon.lastElementChild.children[1];
+      const editBtn = icon.lastElementChild.firstElementChild;
+      const isAnInput = icon.children[1].tagName.toLowerCase() === 'input';
+      const hideConfirmBtns = () => confirmBtn.classList.remove('active');
+      const showEditBtns = () => editBtn.classList.add('active');
+      hideConfirmBtns();
+      showEditBtns();
+      if (isAnInput) {
+        const task = confirmBtn.parentElement.previousElementSibling.value;
+        const copyLocalStorageArray = convertLocalStorageArrayInTasksArray();
+        const index = copyLocalStorageArray.indexOf(oldTask);
+        changeElementTag(editBtn);
+        toDoListArray[index]['task'] = task;
+        updateLocalStorage();
+      }
+    });
+    hideTargetEditBtn();
+    showTargetConfirmBtn();
+    oldTask = editBtn.parentElement.previousElementSibling.textContent;
+    changeElementTag(e.target);
+  }
+  return;
 };
 
-const confirmEditToDo = ({ target }) => {
-  const task = target.parentNode.previousSibling.previousSibling.value;
-  const index = convertLocalStorageArrayInTasksArray().indexOf(oldTask);
-  const confirmEditBtn = target;
-
-  confirmEditBtn.classList.remove('active');
-  confirmEditBtn.previousSibling.previousSibling.classList.add('active');
-  changeElementTag(confirmEditBtn);
-  toDoListArray[index]['task'] = task;
-
-  init();
+const confirmEditToDo = e => {
+  const confirmBtn = e.target;
+  const isConfirmBtn = confirmBtn.classList.contains('box-icon__confirm-edit');
+  if (isConfirmBtn) {
+    const task = confirmBtn.parentElement.previousElementSibling.value;
+    const copyLocalStorageArray = convertLocalStorageArrayInTasksArray();
+    const index = copyLocalStorageArray.indexOf(oldTask);
+    const hideConfirmBtn = () => confirmBtn.classList.remove('active');
+    const showEditBtn = () => confirmBtn.previousElementSibling.classList.add('active');
+    hideConfirmBtn();
+    showEditBtn();
+    changeElementTag(confirmBtn);
+    toDoListArray[index]['task'] = task;
+    init();
+  }
+  return;
 };
 
 const displayCounterTasks = () => {
@@ -151,26 +180,10 @@ const displayToDoList = () => {
     toDoListDOM.innerHTML += toDoHTML;
   });
 
-  const checkboxInputsDOM = document.querySelectorAll('.item__check-todo');
-  const trashBtnsDOM = document.querySelectorAll('.box-icon__delete-todo');
-  const editBtnsDOM = document.querySelectorAll('.box-icon__edit-todo');
-  const confirmEditBtnsDOM = document.querySelectorAll('.box-icon__confirm-edit');
-
-  checkboxInputsDOM.forEach(checkbox => {
-    checkbox.addEventListener('change', checkToDo);
-  });
-
-  editBtnsDOM.forEach(btn => {
-    btn.addEventListener('click', editToDo);
-  });
-
-  confirmEditBtnsDOM.forEach(btn => {
-    btn.addEventListener('click', confirmEditToDo);
-  });
-
-  trashBtnsDOM.forEach(btn => {
-    btn.addEventListener('click', deleteToDo);
-  });
+  toDoListDOM.addEventListener('click', checkToDo);
+  toDoListDOM.addEventListener('click', deleteToDo);
+  toDoListDOM.addEventListener('click', editToDo);
+  toDoListDOM.addEventListener('click', confirmEditToDo);
 };
 
 init();
